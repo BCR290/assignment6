@@ -6,9 +6,8 @@ Directory Structure
 -------------------
 You should have the following directory structure:
 
-  - assignment4-part2
+  - assignment6
     - src //Your files go in here
-    - log.txt //Work log file
 
 Database Requirements
 ---------------------
