@@ -42,5 +42,14 @@ if (isset($_POST['Genre'])){
 		<?php echo get_options($selected); ?>
 		</select>
 		</form>
+		<form>
+		Title:<br>
+		<input type="text" title="Title">
+		<br>
+
+		Length:<br>
+		<input type="text" length="Length">
+		</form>
+
 	</body>
 </html>
