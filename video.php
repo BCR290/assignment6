@@ -49,14 +49,7 @@
 		<?php echo get_options($selected); ?>
 		</select>
 		</form>
-		<form>
-		Title:<br>
-		<input type="text" title="Title">
-		<br>
-
-		Length:<br>
-		<input type="text" length="Length">
-	</form>
+		
 	<?php
 		# request all the movies from the server and print them out in a loop
 		$movies = "SELECT * FROM videos";
@@ -85,6 +78,14 @@
 		}
 	?>
 
+	<form action = "logic.php" method = "POST">
+		Title:<br>
+		<input type="text" title="Title">
+		<br>
+
+		Length:<br>
+		<input type="text" length="Length">
+	</form>
 	<!-- brads forms -->
 	
 	</body>
