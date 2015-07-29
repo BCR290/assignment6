@@ -48,15 +48,9 @@
 		<select name="Genre" onchange="this.form.submit();">
 		<?php echo get_options($selected); ?>
 		</select>
-		</form>
-		<form>
-		Title:<br>
-		<input type="text" title="Title">
-		<br>
-
-		Length:<br>
-		<input type="text" length="Length">
 	</form>
+
+
 	<?php
 		# request all the movies from the server and print them out in a loop
 		$movies = "SELECT * FROM videos";
@@ -86,6 +80,14 @@
 	?>
 
 	<!-- brads forms -->
+		<form>
+			Title:<br>
+			<input type="text" title="Title">
+			<br>
+
+			Length:<br>
+			<input type="text" length="Length">
+		</form>
 	
 	</body>
 </html>
