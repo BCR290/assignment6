@@ -50,7 +50,6 @@
 		</select>
 	</form>
 
-
 	<?php
 		# request all the movies from the server and print them out in a loop
 		$movies = "SELECT * FROM videos";
