@@ -78,15 +78,16 @@
 		}
 	?>
 
-	<!-- brads forms -->
-		<form>
-			Title:<br>
-			<input type="text" title="Title">
-			<br>
+	<form action = "logic.php" method = "POST">
+		Title:<br>
+		<input type="text" title="Title">
+		<br>
 
-			Length:<br>
-			<input type="text" length="Length">
-		</form>
+		Length:<br>
+		<input type="text" length="Length">
+	</form>
+	<!-- brads forms -->
+
 	
 	</body>
 </html>
