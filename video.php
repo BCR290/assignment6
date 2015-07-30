@@ -18,9 +18,14 @@
 		<input type="submit" value="Remove All">
 		</form>
 
-		<form name="Submit">
-		<input type="submit" value="Submit">
+		<!-- brads forms -->
+		<form action = "logic.php" method = "POST">		
+		Title:<input type = "text" name = "Title"><br>
+		Video Length(min):<input type="number" name="Length" min = "0" max ="600"><br>
 		</form>
+
+
+
 	<?php
 		$selected = '';
 
@@ -44,11 +49,15 @@
 			echo $selected;
 		}
 	?>
-	
+
 	<form action = "<?php echo $_SERVER['PHP_SELF']; ?>" method = "POST">
-		<select name="Genre" onchange="this.form.submit();">
+		Choose a Genre:<select name="Genre" onchange="this.form.submit();">
 		<?php echo get_options($selected); ?>
 		</select>
+	</form>
+
+	<form name="Submit">
+	<input type="submit" value="Add a video">
 	</form>
 
 	<?php
@@ -79,15 +88,7 @@
 		}
 	?>
 
-	<!-- brads forms -->
-	<form action = "logic.php" method = "POST">
-		Title:<br>
-		<input type="text" title="Title">
-		<br>
 
-		Length:<br>
-		<input type="text" length="Length">
-	</form>
 	
 
 	
