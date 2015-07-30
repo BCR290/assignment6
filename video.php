@@ -13,15 +13,15 @@
 
 	<body>
 	<!-- rogers forms -->
+	
+		<form name="Remove">
+		<input type="submit" value="Remove All">
+		</form>
+
+		<form name="Submit">
+		<input type="submit" value="Submit">
+		</form>
 	<?php
-		echo '<form name=\"Remove\">';
-		echo '<input type="submit" value="Remove">';
-		echo '</form>';
-
-		echo '<form name="Submit">';
-		echo '<input type="submit" value="Submit">';
-		echo '</form>';
-
 		$selected = '';
 
 		function get_options($select){
@@ -44,6 +44,7 @@
 			echo $selected;
 		}
 	?>
+	
 	<form action = "<?php echo $_SERVER['PHP_SELF']; ?>" method = "POST">
 		<select name="Genre" onchange="this.form.submit();">
 		<?php echo get_options($selected); ?>
@@ -78,6 +79,7 @@
 		}
 	?>
 
+	<!-- brads forms -->
 	<form action = "logic.php" method = "POST">
 		Title:<br>
 		<input type="text" title="Title">
@@ -86,7 +88,7 @@
 		Length:<br>
 		<input type="text" length="Length">
 	</form>
-	<!-- brads forms -->
+	
 
 	
 	</body>
