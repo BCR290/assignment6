@@ -3,95 +3,161 @@
 	include("config.php");
 	$dbc = getdbc();
 
+	// this is an array of the genres that can be chosen, when the user selects a genre the selector returns a number
+	// This is silly
+
+	#remove all 
+	if ($_GET["action"] == "removeAll") {
+		// Delete all the rows in a table
+		$query = "DELETE FROM videos WHERE 1";
+		mysqli_query($dbc, $query);
+	}
+	
+	#rent and return
+	if ($_GET["action"] == "rent") {
+		if (isset($_POST["rent"])) {
+			$id = $_POST["rent"];
+			$query = "UPDATE videos 
+					  SET rented = 1
+					  WHERE id = $id";
+			mysqli_query($dbc, $query);
+		} else if(isset($_POST["return"])) {
+			$id = $_POST["return"];
+			$query = "UPDATE videos 
+					  SET rented = 0
+					  WHERE id = $id";
+			mysqli_query($dbc, $query); 
+		}
+	}
+	
+	#add a movie
+	if ($_GET["action"] == "addmovie") {
+		if(!isset($_POST["Title"])) {
+			echo "unable to add movie";
+		} else {
+			$title = $_POST["Title"];
+			$genre = $_POST["Genre"];
+			$length = $_POST["Length"];
+			$query = "INSERT INTO videos (name, category, length) 
+				      VALUES ('$title', '$genre', '$length')";
+			$add = mysqli_query($dbc, $query);
+
+		}
+		// add a row to the table
+	}
+
 ?>
 
 <!DOCTYPE html>
 <html>
 	<head>
 		<title>Horizontal Video</title>
+		<link rel="stylesheet" type="text/css" href="style.css">
 	</head>
 
 	<body>
-	<!-- rogers forms -->
-	
-		<form name="Remove">
-		<input type="submit" value="Remove All">
+		<!-- removing all movies from Database -->
+		<form name="Remove" action="video.php?action=removeAll" method="POST">
+			DANGER:<input type="submit" value="Remove All">
 		</form>
 
-		<!-- brads forms -->
-		<form action = "logic.php" method = "POST">		
-		Title:<input type = "text" name = "Title"><br>
-		Video Length(min):<input type="number" name="Length" min = "0" max ="600"><br>
-		</form>
+		<!-- select a genre to show. -->
+		<fieldset>
+			<legend>Filter Movies</legend>
+			<form action="video.php?action=selectGenre" method="POST">
+				<select name="Genre">
+					<option value="none">none</option>
+					<option value="action">Action</option>
+					<option value="adventure">Adventure</option>
+					<option value="comedy">Comedy</option>
+					<option value="crime">Crime</option>
+					<option value="fantasy">Fantasy</option>
+					<option value="historical">Historical</option>
+					<option value="horror">Horror</option>
+					<option value="mystery">Mystery</option>
+					<option value="political">Political</option>
+					<option value="romance">Romance</option>
+					<option value="saga">Saga</option>
+					<option value="satire">Satire</option>
+					<option value="science">Science</option>
+					<option value="thriller">Thriller</option>
+					<option value="urban">Urban</option>
+					<option value="other">other</option>
+				</select>
+				<input type="submit" value="Show Genre">
+			</form>
+		</fieldset>
 
-
-
-	<?php
-		$selected = '';
-
-		function get_options($select){
-			$genre = array('Action'=>1,'Adventure'=>2,'Comedy'=>3,'Crime'=>4,'Fantasy'=>5,'Historical' => 6, 'Horror' => 7, 'Mystery' => 8, 'Political' => 9, 'Romance' => 10, 'Saga' => 11, 'Satire' => 12, 'Science' => 13, 'Thriller' => 14, 'Urban' => 15);
-			$option = '';
-			while (list($k, $v)=each($genre)){
-				if ($select == $v){
-					$option.='<option value="'.$v.'" selected>'.$k.'</option>';
-				}
-				else{
-					$option.='<option value="'.$v.'">'.$k.'</option>';
-				}	
-			}
-			return $option;
-
-		}
-
-		if (isset($_POST['Genre'])){
-			$selected = $_POST['Genre'];
-			echo $selected;
-		}
-	?>
-
-	<form action = "<?php echo $_SERVER['PHP_SELF']; ?>" method = "POST">
-		Choose a Genre:<select name="Genre" onchange="this.form.submit();">
-		<?php echo get_options($selected); ?>
-		</select>
-	</form>
-
-	<form name="Submit">
-	<input type="submit" value="Add a video">
-	</form>
-
-	<?php
-		# request all the movies from the server and print them out in a loop
+		<!-- Displaying movies -->
+<?php
+		$genre;
 		$movies = "SELECT * FROM videos";
-		$result = new mysqli_query($dbc, $movies);
-		while ($row = mysqli_fetch_array($result)) {
-			?>
-			<div class="movie">
-				<span>title: </span><span><?=$row[name]?></span><br>
-				<span>genere: </span><span><?=$row[category]?></span><span>length: </span><span><?=$row[length]?></span>
-				<form method="POST" action="logic.php">
-					<span>Currently Avaliable:</span>
-					<?php 
-						if ($row[rented] == 1) {
-							?>
-								<button name="return" value="<?=$row[id]?>">return</button>
-							<?php
-						} else {
-							?>
-								<button name="rent" value="<?=$row[id]?>">rent</button>
-							<?php
-						}
-					?>
-				</form>
-			</div>
-			<?php
+		if($_GET["action"] == "selectGenre") {
+			if (isset($_POST['Genre']) && $_POST["Genre"] != "none") {
+				$genre = $_POST["Genre"];
+				$movies = "SELECT * FROM videos WHERE category = '$genre'";
+			}
 		}
-	?>
+?> 
+		<fieldset>
+			<legend>Movies: <?=$genre?></legend>
+<?php		
+			# request all the movies from the server and print them out in a loop
+			$result = mysqli_query($dbc, $movies) or die("you fucked up");
+			while ($row = mysqli_fetch_array($result)) {
+				?>
+				<div class="movie">
+					<span>title: </span><span><?=$row['name']?></span><br>
+					<span>genere: </span><span><?=$row['category']?></span><span>length: </span><span><?=$row['length']?></span>
+					<form method="POST" action="video.php?action=rent">
+						<span>Currently Avaliable:</span>
+						<?php 
+							if ($row['rented'] == 1) {
+								?>
+									<button name="return" value="<?php echo htmlspecialchars($row['id']); ?>">return</button>
+								<?php
+							} else {
+								?>
+									<button name="rent" value="<?php echo htmlspecialchars($row['id']); ?>">rent</button>
+								<?php
+							}
+						?>
+					</form>
+				</div>
+				<?php
+			}
+?>		
+		</fieldset>
 
+		<!-- adding a movie -->
+		<fieldset>
+			<legend>Add a movie</legend>
+			<form action = "video.php?action=addmovie" method = "POST">		
+				Title:<input type = "text" name = "Title"><br>
+				Video Length(min):<input type="number" name="Length" min = "0" max ="600"><br>
+				Choose a Genre:
+				<select name="Genre">
+					<option value="action">Action</option>
+					<option value="adventure">Adventure</option>
+					<option value="comedy">Comedy</option>
+					<option value="crime">Crime</option>
+					<option value="fantasy">Fantasy</option>
+					<option value="historical">Historical</option>
+					<option value="horror">Horror</option>
+					<option value="mystery">Mystery</option>
+					<option value="political">Political</option>
+					<option value="romance">Romance</option>
+					<option value="saga">Saga</option>
+					<option value="satire">Satire</option>
+					<option value="science">Science</option>
+					<option value="thriller">Thriller</option>
+					<option value="urban">Urban</option>
+					<option value="other">other</option>
+				</select>
+				<input type="submit" value="Add Movie">
+			</form>
+		</fieldset>
 
-	
-
-	
 	</body>
 </html>
 
