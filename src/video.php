@@ -31,7 +31,9 @@
 	}
 	
 	#add a movie
-	if ($_GET["action"] == "addmovie") {
+	if (isset($_POST["Title"]) && $_POST["Title"] == NULL) {
+		echo 'You must input a movie name! Movie not added.';
+	} else if ($_GET["action"] == "addmovie") {
 		if(!isset($_POST["Title"])) {
 			echo "unable to add movie";
 		} else {
@@ -75,16 +77,19 @@
 			<legend>Filter Movies</legend>
 			<form action="video.php?action=selectGenre" method="POST">
 				<select name="genre">
+					<option value="none">All Genres</option>
 					<?php 
-						$genres = ["none", "action", "adventure", "comedy", "crime", "fantasy", "historical", "horror", "mystery", "political", "romance", "saga", "satire", "science", "thriller", "urban", "other"];
-						foreach ($genres as $genre) {
-							if (isset($_POST["genre"]) && $_POST["genre"] == $genre) {
+					$stmt = $dbc->prepare("SELECT DISTINCT category FROM videos WHERE 1");
+					$stmt->execute();
+					$result = $stmt->get_result();
+						while($genre = $result->fetch_array(MYSQLI_ASSOC)) {
+							if (isset($_POST["genre"]) && $_POST["genre"] == $genre["category"]) {
 								?>
-								<option value=<?php echo htmlspecialchars($genre); ?> selected="selected"><?=$genre?></option>
+								<option value=<?php echo htmlspecialchars($genre["category"]); ?> selected="selected"><?=$genre["category"]?></option>
 								<?php
 							} else {
 								?>
-								<option value=<?php echo htmlspecialchars($genre); ?> ><?=$genre?></option>
+								<option value=<?php echo htmlspecialchars($genre["category"]); ?> ><?=$genre["category"]?></option>
 							<?php
 							}
 						}
@@ -124,11 +129,11 @@
 						<?php 
 							if ($row['rented'] == 1) {
 								?>
-									<button name="return" value="<?php echo htmlspecialchars($row['id']); ?>">return</button>
+									<button name="return" value="<?php echo htmlspecialchars($row['id']); ?>">Checked Out</button>
 								<?php
 							} else {
 								?>
-									<button name="rent" value="<?php echo htmlspecialchars($row['id']); ?>">rent</button>
+									<button name="rent" value="<?php echo htmlspecialchars($row['id']); ?>">Avaliable</button>
 								<?php
 							}
 						?>	
