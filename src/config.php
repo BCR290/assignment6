@@ -6,11 +6,17 @@
 		$dbuser = 'smithcr-db';
 		$dbpass = 'NSIq13ND6ShjS9UV';
 		
+		$mysql_handle = mysql_connect($dbhost, $dbuser, $dbpass)
+    	or die("Error connecting to database server");
 
-		$dbc = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
-		if($dbc->connect_error){
-			die("Connection failed: " . $dbc->connect_error);
-		}
+		mysql_select_db($dbname, $mysql_handle)
+			or die("Error selecting database: $dbname");
+
+		//echo 'Successfully connected to database!';
+
+		//mysql_close($mysql_handle);
+
+		$dbc = mysqli_connect($dbhost, $dbuser, $dbpass, $dbname) or die("ERROR: Could not connect to the database server");
 		return $dbc; 
 	}
 ?>
