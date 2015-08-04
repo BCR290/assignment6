@@ -7,27 +7,27 @@
 	// This is silly
 
 	#remove all 
+
+
 	if ($_GET["action"] == "removeAll") {
 		// Delete all the rows in a table
-		$query = "DELETE FROM videos WHERE 1";
-		mysqli_query($dbc, $query);
+		$stmt = $dbc->prepare("DELETE FROM videos WHERE 1");
+		$stmt->execute();
 	}
 	
 	#rent and return
 	if ($_GET["action"] == "rent") {
+		$stmt = $dbc->prepare("UPDATE videos SET rented = ? WHERE id = ?");
+		$stmt->bind_param("ii", $ren, $id);
 		if (isset($_POST["rent"])) {
+			$ren = 1;
 			$id = $_POST["rent"];
-			$query = "UPDATE videos 
-					  SET rented = 1
-					  WHERE id = $id";
-			mysqli_query($dbc, $query);
 		} else if(isset($_POST["return"])) {
 			$id = $_POST["return"];
-			$query = "UPDATE videos 
-					  SET rented = 0
-					  WHERE id = $id";
-			mysqli_query($dbc, $query); 
+			$ren = 0;
+			$id = $_POST["return"];
 		}
+		$stmt->execute();
 	}
 	
 	#add a movie
@@ -35,15 +35,22 @@
 		if(!isset($_POST["Title"])) {
 			echo "unable to add movie";
 		} else {
+			$stmt = $dbc->prepare("INSERT INTO videos (name, category, length) 
+				      VALUES (?, ?, ?)");
+			$stmt->bind_param("ssi", $title, $genre, $length);
 			$title = $_POST["Title"];
 			$genre = $_POST["Genre"];
 			$length = $_POST["Length"];
-			$query = "INSERT INTO videos (name, category, length) 
-				      VALUES ('$title', '$genre', '$length')";
-			$add = mysqli_query($dbc, $query);
-
+			$stmt->execute();
 		}
 		// add a row to the table
+	}
+	#delete a movie
+	if ($_GET["action"] == "delete") {
+		$stmt = $dbc->prepare("DELETE FROM videos WHERE id = ?");
+		$stmt->bind_param("i", $id);
+		$id = $_POST["delete"];
+		$stmt->execute();
 	}
 
 ?>
@@ -56,6 +63,8 @@
 	</head>
 
 	<body>
+		<h1 id="title">  Horizontal Movies </h1>
+
 		<!-- removing all movies from Database -->
 		<form name="Remove" action="video.php?action=removeAll" method="POST">
 			DANGER:<input type="submit" value="Remove All">
@@ -65,24 +74,21 @@
 		<fieldset>
 			<legend>Filter Movies</legend>
 			<form action="video.php?action=selectGenre" method="POST">
-				<select name="Genre">
-					<option value="none">none</option>
-					<option value="action">Action</option>
-					<option value="adventure">Adventure</option>
-					<option value="comedy">Comedy</option>
-					<option value="crime">Crime</option>
-					<option value="fantasy">Fantasy</option>
-					<option value="historical">Historical</option>
-					<option value="horror">Horror</option>
-					<option value="mystery">Mystery</option>
-					<option value="political">Political</option>
-					<option value="romance">Romance</option>
-					<option value="saga">Saga</option>
-					<option value="satire">Satire</option>
-					<option value="science">Science</option>
-					<option value="thriller">Thriller</option>
-					<option value="urban">Urban</option>
-					<option value="other">other</option>
+				<select name="genre">
+					<?php 
+						$genres = ["none", "action", "adventure", "comedy", "crime", "fantasy", "historical", "horror", "mystery", "political", "romance", "saga", "satire", "science", "thriller", "urban", "other"];
+						foreach ($genres as $genre) {
+							if (isset($_POST["genre"]) && $_POST["genre"] == $genre) {
+								?>
+								<option value=<?php echo htmlspecialchars($genre); ?> selected="selected"><?=$genre?></option>
+								<?php
+							} else {
+								?>
+								<option value=<?php echo htmlspecialchars($genre); ?> ><?=$genre?></option>
+							<?php
+							}
+						}
+					?>
 				</select>
 				<input type="submit" value="Show Genre">
 			</form>
@@ -91,24 +97,28 @@
 		<!-- Displaying movies -->
 <?php
 		$genre;
-		$movies = "SELECT * FROM videos";
+		$stmt = $dbc->prepare("SELECT * FROM videos");
 		if($_GET["action"] == "selectGenre") {
-			if (isset($_POST['Genre']) && $_POST["Genre"] != "none") {
-				$genre = $_POST["Genre"];
-				$movies = "SELECT * FROM videos WHERE category = '$genre'";
+			if (isset($_POST['genre']) && $_POST["genre"] != "none") {
+				$stmt = $dbc->prepare("SELECT * FROM videos WHERE category = ?");
+				$stmt->bind_param("s", $genre);
+				$genre = $_POST["genre"];
 			}
 		}
+
 ?> 
 		<fieldset>
 			<legend>Movies: <?=$genre?></legend>
 <?php		
 			# request all the movies from the server and print them out in a loop
-			$result = mysqli_query($dbc, $movies) or die("you fucked up");
-			while ($row = mysqli_fetch_array($result)) {
+			$stmt->execute();
+			$result = $stmt->get_result();
+			while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
 				?>
 				<div class="movie">
-					<span>title: </span><span><?=$row['name']?></span><br>
-					<span>genere: </span><span><?=$row['category']?></span><span>length: </span><span><?=$row['length']?></span>
+					<span>Title: </span><span><?=$row['name']?></span><br>
+					<span>Genere: </span><span><?=$row['category']?></span><br>
+					<span>Length: </span><span><?=$row['length']?></span>
 					<form method="POST" action="video.php?action=rent">
 						<span>Currently Avaliable:</span>
 						<?php 
@@ -121,7 +131,10 @@
 									<button name="rent" value="<?php echo htmlspecialchars($row['id']); ?>">rent</button>
 								<?php
 							}
-						?>
+						?>	
+					</form>
+					<form action="video.php?action=delete" method="POST">
+						<button name="delete" value="<?php echo htmlspecialchars($row['id']); ?>">DELETE</button>
 					</form>
 				</div>
 				<?php
@@ -137,22 +150,14 @@
 				Video Length(min):<input type="number" name="Length" min = "0" max ="600"><br>
 				Choose a Genre:
 				<select name="Genre">
-					<option value="action">Action</option>
-					<option value="adventure">Adventure</option>
-					<option value="comedy">Comedy</option>
-					<option value="crime">Crime</option>
-					<option value="fantasy">Fantasy</option>
-					<option value="historical">Historical</option>
-					<option value="horror">Horror</option>
-					<option value="mystery">Mystery</option>
-					<option value="political">Political</option>
-					<option value="romance">Romance</option>
-					<option value="saga">Saga</option>
-					<option value="satire">Satire</option>
-					<option value="science">Science</option>
-					<option value="thriller">Thriller</option>
-					<option value="urban">Urban</option>
-					<option value="other">other</option>
+					<?php 
+						$genres = ["none", "action", "adventure", "comedy", "crime", "fantasy", "historical", "horror", "mystery", "political", "romance", "saga", "satire", "science", "thriller", "urban", "other"];
+						foreach ($genres as $genre) {
+							?>	
+							<option value=<?php echo htmlspecialchars($genre); ?>><?=$genre?></option>
+							<?php					
+						}
+					?>
 				</select>
 				<input type="submit" value="Add Movie">
 			</form>
